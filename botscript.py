@@ -15,8 +15,9 @@ client = commands.Bot(command_prefix=prefix, case_insensitive=True, intents=inte
 try:
     with open('team_stats.txt', 'r', encoding="utf-8") as newf:
         playerdata = json.loads(newf.read())
-except json.decoder.JSONDecodeError:
+except json.decoder.JSONDecodeError as e:
     playerdata = {}
+    print(e)
 
 try:
     with open("token.txt", 'r') as r:
@@ -58,7 +59,9 @@ def draw_picture(players: dict):
     new_im = Image.new('RGBA', (400, height))
     im = Image.open("first.png").convert('RGBA')
     paste_location = 0
+
     for player in players:
+        index = 0
         im1 = Image.open(f"{player}av.png").convert('RGBA')
         im1.thumbnail((70, 70))
         im2 = Image.open("player_template.png").convert('RGBA')
@@ -66,25 +69,40 @@ def draw_picture(players: dict):
         im.paste(im2, (0, 0), im2)
         draw = ImageDraw.Draw(im)
 
-        draw.text((10, 5), playerdata[player]['nickname'].encode("ascii", "ignore").decode(),
-                  fill=(0, 0, 0))  # .encode("ascii", "ignore").decode() removes special characters (PIL DONT LIKE IT)
-        draw.text((150, 10), str(playerdata[player]['pvp']['pvp_player_kills_total']),
-                  fill=(0, 0, 0) if playerdata[player]['pvp']['pvp_player_kills_total'] ==
-                                    sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_kills_total'])[
-                                    ::-1][0]['pvp']['pvp_player_kills_total'] else (1, 2, 1))
-        draw.text((267, 10), str(playerdata[player]['pvp']['pvp_player_deaths_total']), fill=(0, 0, 0))
-        draw.text((370, 10), str(playerdata[player]['pvp']['kdr']), fill=(0, 0, 0))
-        draw.text((158, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']), fill=(0, 0, 0))
-        draw.text((220, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']), fill=(0, 0, 0))
-        draw.text((275, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']), fill=(0, 0, 0))
-        draw.text((320, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']), fill=(0, 0, 0))
-        draw.text((170, 80), str(round(playerdata[player]['misc']['player_time_played'] / 60, 2)), fill=(0, 0, 0))
-        draw.text((350, 80), str(round(playerdata[player]['pvp']['pvp_player_kills_total'] / (
-                playerdata[player]['misc']['player_time_played'] / 60), 2)), fill=(0, 0, 0))
+        draw.text((10, 5), playerdata[player]['nickname'].encode("ascii", "ignore").decode(),fill=(0, 0, 0))  # .encode("ascii", "ignore").decode() removes special characters (PIL DONT LIKE IT)
+
+        #x, y = 150, 10
+        #for stat_category in list(playerdata[player].keys())[2:]:
+        #    for stat in playerdata[player][stat_category]:
+        #        draw.text((x, y), str(playerdata[player][stat_category][stat]),fill=(0, 0, 0) if playerdata[player][stat_category][stat] == playerdata[sorted(playerdata, key=lambda e: playerdata[e][stat_category][stat])[0]][stat_category][stat] else (255, 0, 0))
+#
+        #        x += 100
+        #        print(x, y, player, stat, playerdata[player][stat_category][stat])
+        #        if index == 2:
+        #            y += 30
+        #            x = 150
+        #        if index == 6:
+        #            y += 40
+        #            x = 150
+#
+        #        index += 1
+
+        normal_color = (0, 0, 0)
+        highlight_color = (255, 0, 0)
+
+        draw.text((150, 10), str(playerdata[player]['pvp']['pvp_player_kills_total']), fill=normal_color if playerdata[player]['pvp']['pvp_player_kills_total'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_kills_total'])[0]]['pvp']['pvp_player_kills_total'] else highlight_color)
+        draw.text((267, 10), str(playerdata[player]['pvp']['pvp_player_deaths_total']), fill=normal_color if playerdata[player]['pvp']['pvp_player_deaths_total'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_deaths_total'])[0]]['pvp']['pvp_player_deaths_total'] else highlight_color)
+        draw.text((370, 10), str(playerdata[player]['pvp']['kdr']), fill=normal_color if playerdata[player]['pvp']['kdr'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['pvp']['kdr'])[0]]['pvp']['kdr'] else highlight_color)
+        draw.text((158, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']), fill=normal_color if playerdata[player]['resources']['farming_resource_stone_harvested'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['resources']['farming_resource_stone_harvested'])[0]]['resources']['farming_resource_stone_harvested'] else highlight_color)
+        draw.text((220, 40), str(playerdata[player]['resources']['farming_resource_sulfur_harvested']), fill=normal_color if playerdata[player]['resources']['farming_resource_sulfur_harvested'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['resources']['farming_resource_sulfur_harvested'])[0]]['resources']['farming_resource_sulfur_harvested'] else highlight_color)
+        draw.text((275, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']), fill=normal_color if playerdata[player]['pvp']['pvp_player_kills_total'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_kills_total'])[0]]['pvp']['pvp_player_kills_total'] else highlight_color)
+        draw.text((320, 40), str(playerdata[player]['resources']['farming_resource_metal_harvested']), fill=normal_color if playerdata[player]['resources']['farming_resource_metal_harvested'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['resources']['farming_resource_metal_harvested'])[0]]['resources']['farming_resource_metal_harvested'] else highlight_color)
+        draw.text((170, 80), str(round(playerdata[player]['misc']['player_time_played'] / 60**2, 2)), fill=normal_color if playerdata[player]['misc']['player_time_played'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['misc']['player_time_played'])[0]]['misc']['player_time_played'] else highlight_color)
+        draw.text((350, 80), str(round(playerdata[player]['pvp']['pvp_player_kills_total'] / (playerdata[player]['misc']['player_time_played'] / 60), 2)), fill=normal_color if playerdata[player]['pvp']['pvp_player_kills_total'] == playerdata[sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_kills_total'] / (playerdata[player]['misc']['player_time_played'] / 60))[0]]['pvp']['pvp_player_kills_total'] else highlight_color)
         new_im.paste(im, (0, paste_location), im)
         paste_location += 100
     # new_im.show()
-    new_im.save('statistics.png')
+    new_im.save('statistics.png')  # YO YOU CAN JUST SEND A PIL OBJECT AS AN IMAGE IN DISCORD INSTEAD OF SAVING IT
 
 
 def update_stats(players):
@@ -151,6 +169,7 @@ async def change(ctx, original, new):
 @client.command()
 async def stats(ctx):
     if playerdata == {}:
+        print(playerdata)
         await ctx.channel.send('No one in group, add them using !add ')
         return
     draw_picture(playerdata)
@@ -167,3 +186,6 @@ async def remove(ctx, *player):
 
 
 client.run(token)
+
+
+#draw_picture(playerdata)

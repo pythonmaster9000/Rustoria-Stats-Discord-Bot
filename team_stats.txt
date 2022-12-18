@@ -1,0 +1,38 @@
+{
+    "ShadowKeelan2009\u30c4 ON TTV #MrkE": {
+        "player_id": "76561198148134454",
+        "nickname": "ShadowKeelan2009\u30c4 ON TTV #MrkE",
+        "pvp": {
+            "pvp_player_kills_total": 108,
+            "pvp_player_deaths_total": 22,
+            "kdr": "4.91"
+        },
+        "resources": {
+            "farming_resource_stone_harvested": 11066,
+            "farming_resource_sulfur_harvested": 100,
+            "farming_resource_wood_harvested": 1300,
+            "farming_resource_metal_harvested": 0
+        },
+		"misc": {
+            "player_time_played": 40849
+        }
+    },
+    "cryatic": {
+        "player_id": "76561198306622881",
+        "nickname": "cryatic",
+        "pvp": {
+            "pvp_player_kills_total": 45,
+            "pvp_player_deaths_total": 44,
+            "kdr": "1.02"
+        },
+        "resources": {
+            "farming_resource_stone_harvested": 800,
+            "farming_resource_sulfur_harvested": 700,
+            "farming_resource_wood_harvested": 1700,
+            "farming_resource_metal_harvested": 900
+        },
+		"misc": {
+            "player_time_played": 34375
+        }
+    }
+}
