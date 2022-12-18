@@ -40,7 +40,8 @@ def change_nickname(original_name, new_name):
 def get_player(player_id: int):
     steam_page = requests.get(f'https://steamcommunity.com/profiles/{player_id}')
     player_username = steam_page.text.split('<title>Steam Community ::')[1].split("</")[0].lstrip()
-    player_avatar_url = re.search("(?P<url>https?://[^\s]+)", steam_page.text.split('<div class="playerAvatarAutoSizeInner">')[1]).group("url")[:-2]
+    player_avatar_url = re.search("(?P<url>https?://[^\s]+)",
+                                  steam_page.text.split('<div class="playerAvatarAutoSizeInner">')[1]).group("url")[:-2]
 
     return player_username, player_avatar_url
 
@@ -65,8 +66,12 @@ def draw_picture(players: dict):
         im.paste(im2, (0, 0), im2)
         draw = ImageDraw.Draw(im)
 
-        draw.text((10, 5), playerdata[player]['nickname'].encode("ascii", "ignore").decode(), fill=(0, 0, 0))  # .encode("ascii", "ignore").decode() removes special characters (PIL DONT LIKE IT)
-        draw.text((150, 10), str(playerdata[player]['pvp']['pvp_player_kills_total']), fill=(0, 0, 0))
+        draw.text((10, 5), playerdata[player]['nickname'].encode("ascii", "ignore").decode(),
+                  fill=(0, 0, 0))  # .encode("ascii", "ignore").decode() removes special characters (PIL DONT LIKE IT)
+        draw.text((150, 10), str(playerdata[player]['pvp']['pvp_player_kills_total']),
+                  fill=(0, 0, 0) if playerdata[player]['pvp']['pvp_player_kills_total'] ==
+                                    sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_kills_total'])[
+                                    ::-1][0]['pvp']['pvp_player_kills_total'] else (1, 2, 1))
         draw.text((267, 10), str(playerdata[player]['pvp']['pvp_player_deaths_total']), fill=(0, 0, 0))
         draw.text((370, 10), str(playerdata[player]['pvp']['kdr']), fill=(0, 0, 0))
         draw.text((158, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']), fill=(0, 0, 0))
@@ -74,7 +79,8 @@ def draw_picture(players: dict):
         draw.text((275, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']), fill=(0, 0, 0))
         draw.text((320, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']), fill=(0, 0, 0))
         draw.text((170, 80), str(round(playerdata[player]['misc']['player_time_played'] / 60, 2)), fill=(0, 0, 0))
-        draw.text((350, 80), str(round(playerdata[player]['pvp']['pvp_player_kills_total'] / (playerdata[player]['misc']['player_time_played'] / 60), 2)), fill=(0, 0, 0))
+        draw.text((350, 80), str(round(playerdata[player]['pvp']['pvp_player_kills_total'] / (
+                playerdata[player]['misc']['player_time_played'] / 60), 2)), fill=(0, 0, 0))
         new_im.paste(im, (0, paste_location), im)
         paste_location += 100
     # new_im.show()
@@ -92,16 +98,18 @@ def update_stats(players):
 
 
 def add_to_data(player: str):
-
     for index, stat in enumerate(types_of_stats):
         # Checks to see if the player exists & grabs steam information
-        stat_data = requests.get(f'https://api.rustoria.co/statistics/leaderboards/2x_mondays_us/{stat}?from=0&sortBy=total&orderBy=asc&username={player}').json()['leaderboard'][0]
+        stat_data = requests.get(
+            f'https://api.rustoria.co/statistics/leaderboards/2x_mondays_us/{stat}?from=0&sortBy=total&orderBy=asc&username={player}').json()[
+            'leaderboard'][0]
         if index == 0:
             if len(stat_data) == 0:  # No results on the page (invalid player name)
                 return 0
 
             player_user_id = stat_data['userId']
-            steam_name, player_image_url = get_player(player_id=player_user_id)  # Gets the players steam name & steam avatar
+            steam_name, player_image_url = get_player(
+                player_id=player_user_id)  # Gets the players steam name & steam avatar
             print(steam_name)
             playerdata[steam_name] = {}
             playerdata[steam_name]['player_id'] = player_user_id
