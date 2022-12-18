@@ -70,8 +70,7 @@ def draw_picture(players: dict):
                   fill=(0, 0, 0))  # .encode("ascii", "ignore").decode() removes special characters (PIL DONT LIKE IT)
         draw.text((150, 10), str(playerdata[player]['pvp']['pvp_player_kills_total']),
                   fill=(0, 0, 0) if playerdata[player]['pvp']['pvp_player_kills_total'] ==
-                                    sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_kills_total'])[
-                                    ::-1][0]['pvp']['pvp_player_kills_total'] else (1, 2, 1))
+                                    playerdata[sorted(playerdata, key=lambda e: playerdata[e]['pvp']['pvp_player_kills_total'])[0]]['pvp']['pvp_player_kills_total'] else (1, 2, 1))
         draw.text((267, 10), str(playerdata[player]['pvp']['pvp_player_deaths_total']), fill=(0, 0, 0))
         draw.text((370, 10), str(playerdata[player]['pvp']['kdr']), fill=(0, 0, 0))
         draw.text((158, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']), fill=(0, 0, 0))
