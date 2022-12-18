@@ -22,7 +22,7 @@ try:
     with open("token.txt", 'r') as r:
         token = r.read()
 except FileNotFoundError:
-    assert "MAKE A FILE CALLED 'token.txt' AND PUT YER TOKEN IN IT"
+    raise "MAKE A FILE CALLED 'token.txt' AND PUT YER TOKEN IN IT"
 
 types_of_stats = ['pvp', 'misc', 'resources']
 
