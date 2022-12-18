@@ -14,7 +14,7 @@ intents.members = True
 prefix = '!'
 client = commands.Bot(command_prefix=prefix, case_insensitive=True, intents=intents)
 try:
-    with open('team_stats.txt', 'r') as newf:
+    with open('team_stats.txt', 'r', encoding="utf-8") as newf:
         playerdata = json.loads(newf.read())
 except json.decoder.JSONDecodeError:
     playerdata = {}
@@ -32,16 +32,21 @@ def change_nickname(original_name, new_name):
         return False
 
 
-def get_profile_pictures(players):
-    for player in players:
-        steam_page = requests.get(f'https://steamcommunity.com/profiles/{playerdata[player]["player_id"]}')
-        avatar_link = steam_page.text.split('<div class="playerAvatarAutoSizeInner">')[1]
-        img_data = requests.get(re.search("(?P<url>https?://[^\s]+)", avatar_link).group("url")[:-2]).content
-        with open(f'{player}av.png', 'wb') as handler:
-            handler.write(img_data)
+def get_player(player_id: int):
+    steam_page = requests.get(f'https://steamcommunity.com/profiles/{player_id}')
+    player_username = steam_page.text.split('<title>Steam Community ::')[1].split("</")[0].lstrip()
+    player_avatar_url = re.search("(?P<url>https?://[^\s]+)", steam_page.text.split('<div class="playerAvatarAutoSizeInner">')[1]).group("url")[:-2]
+
+    return player_username, player_avatar_url
 
 
-def draw_picture(players):
+def download_player_image(player_username: str, image_url: str):
+    img_data = requests.get(image_url).content
+    with open(f'{player_username}av.png', 'wb') as handler:
+        handler.write(img_data)
+
+
+def draw_picture(players: dict):
     players = sorted(players, key=lambda e: players[e]['pvp']['pvp_player_kills_total'], reverse=True)
     height = len(players) * 100
     new_im = Image.new('RGBA', (400, height))
@@ -53,22 +58,18 @@ def draw_picture(players):
         im2 = Image.open("player_template.png").convert('RGBA')
         im.paste(im1, (10, 18), im1)
         im.paste(im2, (0, 0), im2)
-        ImageDraw.Draw(im).text((10, 5), playerdata[player]['nickname'], fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((150, 10), str(playerdata[player]['pvp']['pvp_player_kills_total']), fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((267, 10), str(playerdata[player]['pvp']['pvp_player_deaths_total']), fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((370, 10), str(playerdata[player]['pvp']['kdr']), fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((158, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']),
-                                fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((220, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']),
-                                fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((275, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']),
-                                fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((320, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']),
-                                fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((170, 80), str(round(playerdata[player]['misc']['player_time_played'] / 60, 2)),
-                                fill=(0, 0, 0))
-        ImageDraw.Draw(im).text((350, 80), str(round(playerdata[player]['pvp']['pvp_player_kills_total'] / (
-                playerdata[player]['misc']['player_time_played'] / 60), 2)), fill=(0, 0, 0))
+        draw = ImageDraw.Draw(im)
+
+        draw.text((10, 5), playerdata[player]['nickname'].encode("ascii", "ignore").decode(), fill=(0, 0, 0))  # .encode("ascii", "ignore").decode() removes special characters (PIL DONT LIKE IT)
+        draw.text((150, 10), str(playerdata[player]['pvp']['pvp_player_kills_total']), fill=(0, 0, 0))
+        draw.text((267, 10), str(playerdata[player]['pvp']['pvp_player_deaths_total']), fill=(0, 0, 0))
+        draw.text((370, 10), str(playerdata[player]['pvp']['kdr']), fill=(0, 0, 0))
+        draw.text((158, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']), fill=(0, 0, 0))
+        draw.text((220, 40), str(playerdata[player]['resources']['farming_resource_stone_harvested']), fill=(0, 0, 0))
+        draw.text((275, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']), fill=(0, 0, 0))
+        draw.text((320, 40), str(playerdata[player]['resources']['farming_resource_wood_harvested']), fill=(0, 0, 0))
+        draw.text((170, 80), str(round(playerdata[player]['misc']['player_time_played'] / 60, 2)), fill=(0, 0, 0))
+        draw.text((350, 80), str(round(playerdata[player]['pvp']['pvp_player_kills_total'] / (playerdata[player]['misc']['player_time_played'] / 60), 2)), fill=(0, 0, 0))
         new_im.paste(im, (0, paste_location), im)
         paste_location += 100
     # new_im.show()
@@ -85,25 +86,27 @@ def update_stats(players):
                 time.sleep(1)
 
 
-def add_to_data(players):
-    for player in players:
-        if len(requests.get(
-                f'https://api.rustoria.co/statistics/leaderboards/2x_mondays_us/pvp?from=0&sortBy=total&orderBy=asc&username={player}').json()[
-                   'leaderboard']) == 0:
-            continue
-        playerdata[player] = {}
-        playerdata[player]['nickname'] = player
-        playerdata[player]['player_id'] = requests.get(
-            f'https://api.rustoria.co/statistics/leaderboards/2x_mondays_us/pvp?from=0&sortBy=total&orderBy=asc&username={player}').json()[
-            'leaderboard'][0]["userId"]
-        time.sleep(1)
-        for stat in types_of_stats:
-            playerdata[player][stat] = requests.get(
-                f'https://api.rustoria.co/statistics/leaderboards/2x_mondays_us/{stat}?from=0&sortBy=total&orderBy=asc&username={player}').json()[
-                'leaderboard'][0]['data']
-            time.sleep(1)
-        get_profile_pictures([player])
-    with open('team_stats.txt', 'w') as newf:
+def add_to_data(player: str):
+
+    for index, stat in enumerate(types_of_stats):
+        # Checks to see if the player exists & grabs steam information
+        stat_data = requests.get(f'https://api.rustoria.co/statistics/leaderboards/2x_mondays_us/{stat}?from=0&sortBy=total&orderBy=asc&username={player}').json()['leaderboard'][0]
+        if index == 0:
+            if len(stat_data) == 0:  # No results on the page (invalid player name)
+                return 0
+
+            player_user_id = stat_data['userId']
+            steam_name, player_image_url = get_player(player_id=player_user_id)  # Gets the players steam name & steam avatar
+            print(steam_name)
+            playerdata[steam_name] = {}
+            playerdata[steam_name]['player_id'] = player_user_id
+            playerdata[steam_name]['nickname'] = steam_name
+
+        playerdata[steam_name][stat] = stat_data['data']
+
+    download_player_image(player_username=steam_name, image_url=player_image_url)  # Downloads the players image locally
+
+    with open('team_stats.txt', 'w', encoding="utf-8") as newf:
         newf.write(json.dumps(playerdata, indent=4))
 
 
@@ -118,9 +121,10 @@ async def update_team():
 
 
 @client.command()
-async def add(ctx, *players):
-    await ctx.channel.send(f'Adding {" ".join(players)}')
-    add_to_data([" ".join(players)])
+async def add(ctx, *player):
+    player_name = " ".join(player)
+    await ctx.channel.send(f'Adding {player_name}')
+    add_to_data(player_name)
 
 
 @client.command()
@@ -149,4 +153,4 @@ async def remove(ctx, *player):
         await ctx.channel.send('KeyError !!! type it right')
 
 
-client.run('MTA1Mzc2Nzk2MjAzODkxNTE3Mg.GOc00k.qjHaAOdp8gg8JQWZ76nBM19S31l6OX6UKx6dao')
+client.run('MTA0Nzk5MDQ2MDQ5MDE5OTExMQ.GXGGiF.kzEvCo4T4AbJurl86CzUAmKgBrm3dPkrvYrEpY')
