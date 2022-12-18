@@ -72,7 +72,7 @@ def draw_picture(players):
         new_im.paste(im, (0, paste_location), im)
         paste_location += 100
     # new_im.show()
-    new_im.save('statistics.png')
+    new_im.save('statistics123.png')
 
 
 def update_stats(players):
