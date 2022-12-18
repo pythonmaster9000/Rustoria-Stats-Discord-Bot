@@ -1,4 +1,3 @@
-# MTA1Mzc2Nzk2MjAzODkxNTE3Mg.GOc00k.qjHaAOdp8gg8JQWZ76nBM19S31l6OX6UKx6dao
 import requests
 import re
 from PIL import Image
@@ -18,6 +17,12 @@ try:
         playerdata = json.loads(newf.read())
 except json.decoder.JSONDecodeError:
     playerdata = {}
+
+try:
+    with open("token.txt", 'r') as r:
+        token = r.read()
+except FileNotFoundError:
+    assert "MAKE A FILE CALLED 'token.txt' AND PUT YER TOKEN IN IT"
 
 types_of_stats = ['pvp', 'misc', 'resources']
 
@@ -153,4 +158,4 @@ async def remove(ctx, *player):
         await ctx.channel.send('KeyError !!! type it right')
 
 
-client.run('MTA0Nzk5MDQ2MDQ5MDE5OTExMQ.GXGGiF.kzEvCo4T4AbJurl86CzUAmKgBrm3dPkrvYrEpY')
+client.run(token)
